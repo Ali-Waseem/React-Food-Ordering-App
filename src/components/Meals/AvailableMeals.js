@@ -3,42 +3,33 @@ import classes from "./AvailableMeals.module.css";
 import Card from "../UI/Card";
 import MealItem from "./MealItems/MealItem";
 import baseUrls from "../../baseUrls";
+import useHttp from "../../hooks/use-http";
 
 const AvailableMeals = () => {
     const [meals, setMealsList] = useState([]);
-    const [isLoading, setIsLoading] = useState(false);
+    // const [isLoading, setIsLoading] = useState(false);
+    
+    //isLoading IS HANDLED BY YOUR CUSTOM HOOK. SINCE IT'S CUSTOM YOU CAN CONFIGURE AND RETURN ANYTHING FOR IT
+    const { isLoading, sendRequest: getMeals } = useHttp()
 
-
-    const getMeals = useCallback(async () => {
-        setIsLoading(true);
-        const response = await fetch(baseUrls.fetchMealsUrl,{});
-        if(!response.ok) {
-            throw new Error('Request Failed');
-        }
-        const responseData = await response.json();
-        const data = [];
-        
-        for(const key in responseData) {
+    useEffect(() => {
+    const getResultData = (resultData) => {
+        const data = []
+            for(const key in resultData) {
             data.push({
                 id: key,
-                name: responseData[key].name,
-                description: responseData[key].description,
-                price: responseData[key].price,
+                name: resultData[key].name,
+                description: resultData[key].description,
+                price: resultData[key].price,
             })
         }
         setMealsList(data);
-        setIsLoading(false);
-    },[])
-
-
-    useEffect(() => {
-        getMeals()
-        .catch(error => {
-            console.log(error);
-        });
-    },[])
-
-
+    }
+        getMeals({
+            url: baseUrls.fetchMealsUrl
+        }, getResultData)
+    
+},[])
 
     return <Fragment>
         <section className={classes.meals}>
